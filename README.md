@@ -1,6 +1,8 @@
 # Gitzy
 Gity - Simple, Fast and Free!
 # 🌟 Gitzy — Search GitHub Smarter
+![Uploading Gitzy-Screen-Shot.png…]()
+
 
 > **"Explore GitHub like never before — discover repositories, developers, and ideas that inspire."**
 
