@@ -25,7 +25,7 @@ Gitzy turns GitHub search into a smooth, fast, and delightful experience.
 ---
 
 ## 🚀 Live Demo
-🔗 **GitHub Pages:** [https://YourUsername.github.io/Gitzy](https://YourUsername.github.io/Gitzy)
+🔗 **GitHub Pages:** [https://F2Codes.github.io/Gitzy](https://F2Codes.github.io/Gitzy)
 
 ---
 
