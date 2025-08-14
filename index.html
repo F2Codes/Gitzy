@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gitzy - جستجوی آسان گیت‌هاب</title>
+
+    <!-- Font: Vazirmatn (Vazir) -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: { sans: ['Vazirmatn', 'ui-sans-serif', 'system-ui'] },
+            colors: {
+              night: { 900:'#0b1220', 800:'#0f1628', 700:'#141c34', glass:'rgba(255,255,255,0.06)' },
+              primary: { 500:'#2f83ff', 600:'#1d6fff' },
+              accent: { 500:'#00b8ff' }
+            },
+            boxShadow: {
+              glow: '0 0 0 1px rgba(255,255,255,0.06), 0 18px 50px rgba(0,0,0,0.45)',
+              soft: '0 10px 30px rgba(0,0,0,0.35)'
+            },
+            backgroundImage: {
+              hero:
+                'radial-gradient(1200px 600px at 85% -10%, rgba(0,184,255,.18), transparent 60%), radial-gradient(900px 500px at 0% 0%, rgba(147,51,234,.14), transparent 60%), linear-gradient(180deg, #0b1220 0%, #0f1628 35%, #0b1220 100%)'
+            }
+          }
+        }
+      }
+    </script>
+
+    <!-- React 18 + Babel (برای JSX روی GitHub Pages) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+      html, body { height: 100%; }
+      body { background: #0b1220; }
+      .bg-hero { background-image: var(--tw-gradient-stops), var(--tw-gradient-from), var(--tw-gradient-to); }
+      /* tiny grid texture */
+      .texture {
+        background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.06) 1px, transparent 0);
+        background-size: 22px 22px;
+        mask-image: linear-gradient(180deg, rgba(0,0,0,.6), rgba(0,0,0,1));
+      }
+    </style>
+  </head>
+
+  <body class="font-sans text-white min-h-screen bg-hero-gradient bg-hero overflow-x-hidden">
+    <!-- HEADER -->
+    <header class="sticky top-0 z-40 bg-night-900/50 backdrop-blur border-b border-white/5">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+        <a href="#" class="group inline-flex items-center gap-3">
+          <span class="inline-grid place-items-center w-10 h-10 rounded-2xl bg-gradient-to-br from-primary-600 to-accent-500 shadow-glow">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="opacity-95">
+              <path d="M8 17L3 12L8 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M16 7L21 12L16 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M13 5L11 19" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <div>
+            <div class="text-xl font-extrabold tracking-tight"><span class="text-primary-500">Git</span>zy</div>
+            <div class="text-xs text-white/60 -mt-0.5">جستجوی آسان گیت‌هاب</div>
+          </div>
+        </a>
+
+        <nav class="hidden md:flex items-center gap-2">
+          <a href="#explore" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm">کاوش</a>
+          <a href="#about" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm">درباره</a>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <a class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10" href="https://t.me/MatinHajzeinali/" target="_blank" aria-label="تلگرام">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" class="text-accent-500"><path d="M9.04 16.44l-.26 3.66c.37 0 .53-.16.72-.35l1.73-1.66 3.58 2.62c.66.36 1.13.17 1.31-.61l2.37-10.79c.21-.92-.33-1.28-.96-1.06L4.1 11.23c-.88.31-.87.76-.15.96l3.51 1.09 8.15-5.15c.38-.24.72-.11.44.13"/></svg>
+          </a>
+          <a class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10" href="https://github.com/F2Codes/" target="_blank" aria-label="گیت‌هاب">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5a12 12 0 00-3.79 23.39c.6.11.82-.26.82-.58l-.02-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.41-1.34-1.78-1.34-1.78-1.09-.75.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.49.99.11-.78.42-1.31.76-1.61-2.66-.31-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.23-3.22-.12-.3-.53-1.55.12-3.23 0 0 1-.32 3.29 1.23a11.5 11.5 0 015.99 0c2.28-1.55 3.28-1.23 3.28-1.23.66 1.68.25 2.93.13 3.23.77.84 1.23 1.9 1.23 3.22 0 4.61-2.81 5.61-5.49 5.91.43.37.81 1.1.81 2.22l-.01 3.29c0 .32.21.69.82.58A12 12 0 0012 .5z"/></svg>
+          </a>
+          <a class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10" href="mailto:matinf2dev@gmail.com" aria-label="ایمیل">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm-1.4 4.25l-6.22 4.66a1 1 0 01-1.16 0L5 8.25a1 1 0 111.2-1.6L12 11l5.8-4.35a1 1 0 111.2 1.6z"/></svg>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6">
+      <!-- Hero -->
+      <section id="explore" class="pt-16 pb-8 text-center relative">
+        <div class="texture absolute inset-0 opacity-30 pointer-events-none"></div>
+        <h1 class="relative text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+          <span class="text-white">گشت‌وگذار در گیت‌هاب با</span>
+          <span class="text-transparent bg-clip-text bg-gradient-to-l from-primary-600 to-accent-500"> Gitzy</span>
+        </h1>
+        <p class="relative max-w-2xl mx-auto mt-4 text-white/70">همه‌چیز را از مخازن و توسعه‌دهندگان تا موضوعات داغ پیدا کنید. سریع، زیبا، و فارسی.</p>
+
+        <!-- Search block -->
+        <div id="app-root" class="relative mt-8"></div>
+      </section>
+
+      <!-- About -->
+      <section id="about" class="pb-24">
+        <div class="rounded-3xl bg-white/5 border border-white/10 p-6 sm:p-8">
+          <h2 class="text-xl font-extrabold mb-3">درباره Gitzy</h2>
+          <p class="text-white/70 leading-8">
+            Gitzy یک ابزار سبکِ تحت‌وب برای جستجوی محتوای گیت‌هاب است که با <strong>React</strong> و
+            <strong>Tailwind CSS</strong> ساخته شده و به‌صورت کاملاً سمت‌کاربر روی GitHub Pages اجرا می‌شود.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/5 py-8 mt-auto">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-white/70">ساخته شده با 💙</p>
+        <div class="flex items-center gap-2">
+          <a class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm" href="https://t.me/MatinHajzeinali/" target="_blank">تلگرام</a>
+          <a class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm" href="https://github.com/F2Codes/" target="_blank">گیت‌هاب</a>
+          <a class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm" href="mailto:matinf2dev@gmail.com">ایمیل</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- React App -->
+    <script type="text/babel">
+      const { useState, useEffect, useMemo } = React;
+
+      // ---- UI Primitives ----
+      const Button = ({ className = "", ...props }) => (
+        <button
+          {...props}
+          className={
+            "h-12 px-5 rounded-2xl font-bold transition " +
+            "bg-gradient-to-l from-primary-600 to-accent-500 hover:opacity-95 active:opacity-90 " +
+            className
+          }
+        />
+      );
+
+      const Tab = ({ active, children, ...props }) => (
+        <button
+          {...props}
+          className={
+            "px-3 py-1.5 rounded-xl border text-sm transition " +
+            (active
+              ? "bg-gradient-to-l from-primary-600 to-accent-500 border-transparent"
+              : "bg-white/5 hover:bg-white/10 border-white/10")
+          }
+        >
+          {children}
+        </button>
+      );
+
+      const Chip = ({ children, onClick }) => (
+        <button
+          onClick={onClick}
+          className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition text-xs"
+        >
+          {children}
+        </button>
+      );
+
+      const ErrorBar = ({ text }) =>
+        text ? (
+          <div className="mt-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm">{text}</div>
+        ) : null;
+
+      // ---- Cards ----
+      const SkeletonCard = () => (
+        <div className="animate-pulse rounded-3xl p-5 sm:p-6 bg-white/5 border border-white/10">
+          <div className="h-5 w-2/3 bg-white/10 rounded"></div>
+          <div className="h-4 w-full bg-white/10 rounded mt-3"></div>
+          <div className="h-4 w-5/6 bg-white/10 rounded mt-2"></div>
+          <div className="flex gap-2 mt-4">
+            <div className="h-6 w-20 bg-white/10 rounded"></div>
+            <div className="h-6 w-16 bg-white/10 rounded"></div>
+            <div className="h-6 w-24 bg-white/10 rounded"></div>
+          </div>
+        </div>
+      );
+
+      const Badge = ({ children }) => (
+        <span className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-xs">{children}</span>
+      );
+
+      const RepoCard = ({ repo }) => {
+        const topics = (repo.topics || []).slice(0, 6);
+        return (
+          <article className="group rounded-3xl p-5 sm:p-6 bg-white/5 border border-white/10 hover:border-white/20 transition shadow-soft">
+            <div className="flex items-start justify-between gap-3">
+              <a href={repo.html_url} target="_blank" className="block">
+                <h3 className="text-lg sm:text-xl font-extrabold">{repo.full_name}</h3>
+              </a>
+              <a
+                href={repo.html_url}
+                target="_blank"
+                className="px-3 py-1.5 rounded-xl bg-gradient-to-l from-primary-600 to-accent-500 text-sm"
+              >
+                مشاهده
+              </a>
+            </div>
+
+            <p className="mt-2 text-white/70 leading-7">{repo.description || "—"}</p>
+
+            <div className="mt-3 flex flex-wrap gap-2">{topics.map(t => <Badge key={t}>#{t}</Badge>)}</div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-white/70">
+              <span className="inline-flex items-center gap-1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                </svg>
+                {repo.stargazers_count.toLocaleString("fa-IR")} ستاره
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5 20l7-5 7 5V6a2 2 0 00-2-2H7a2 2 0 00-2 2z" />
+                </svg>
+                {repo.forks_count.toLocaleString("fa-IR")} فورک
+              </span>
+              {repo.language ? <Badge>{repo.language}</Badge> : null}
+              <span>
+                مالک:{" "}
+                <a className="underline decoration-white/20 hover:decoration-white" target="_blank" href={repo.owner.html_url}>
+                  {repo.owner.login}
+                </a>
+              </span>
+              <span>بروزرسانی: {new Date(repo.updated_at).toLocaleDateString("fa-IR")}</span>
+            </div>
+          </article>
+        );
+      };
+
+      const UserCard = ({ u }) => (
+        <article className="rounded-3xl p-5 sm:p-6 bg-white/5 border border-white/10 hover:border-white/20 transition shadow-soft flex items-center gap-4">
+          <img src={u.avatar_url + "&s=120"} alt={u.login} className="w-16 h-16 rounded-2xl border border-white/10" />
+          <div className="flex-1">
+            <a href={u.html_url} target="_blank" className="block">
+              <h3 className="text-lg font-extrabold">{u.login}</h3>
+            </a>
+            <p className="text-white/60 text-sm mt-1">نوع: {u.type}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Badge>امتیاز: {u.score?.toFixed?.(1) ?? "—"}</Badge>
+            </div>
+          </div>
+          <a
+            href={u.html_url}
+            target="_blank"
+            className="px-3 py-1.5 rounded-xl bg-gradient-to-l from-primary-600 to-accent-500 text-sm"
+          >
+            مشاهده
+          </a>
+        </article>
+      );
+
+      const TopicCard = ({ t }) => (
+        <article className="rounded-3xl p-5 sm:p-6 bg-white/5 border border-white/10 hover:border-white/20 transition shadow-soft">
+          <h3 className="text-lg font-extrabold">{t.display_name || t.name}</h3>
+          <p className="mt-2 text-white/70">{t.short_description || "—"}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Badge>محبوبیت: {t.score?.toFixed?.(1) ?? "—"}</Badge>
+          </div>
+          <a
+            href={`https://github.com/topics/${t.name}`}
+            target="_blank"
+            className="mt-4 inline-block px-3 py-1.5 rounded-xl bg-gradient-to-l from-primary-600 to-accent-500 text-sm"
+          >
+            مشاهده موضوع
+          </a>
+        </article>
+      );
+
+      // ---- App ----
+      function App() {
+        const [query, setQuery] = useState("");
+        const [type, setType] = useState("repos"); // repos | users | topics
+        const [items, setItems] = useState([]);
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState("");
+        const [page, setPage] = useState(1);
+        const [total, setTotal] = useState(0);
+        const [accept, setAccept] = useState({}); // header for topics
+
+        useEffect(() => {
+          if (type === "topics") {
+            setAccept({ Accept: "application/vnd.github.mercy-preview+json" });
+          } else setAccept({});
+        }, [type]);
+
+        const perPage = 20;
+
+        const doSearch = async (resetPage = true) => {
+          const q = query.trim();
+          if (!q) {
+            setItems([]);
+            setTotal(0);
+            setError("");
+            return;
+          }
+          setError("");
+          setLoading(true);
+          try {
+            const currentPage = resetPage ? 1 : page + 1;
+            const url =
+              type === "repos"
+                ? `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=${perPage}&page=${currentPage}`
+                : type === "users"
+                ? `https://api.github.com/search/users?q=${encodeURIComponent(q)}&per_page=${perPage}&page=${currentPage}`
+                : `https://api.github.com/search/topics?q=${encodeURIComponent(q)}&per_page=${perPage}&page=${currentPage}`;
+
+            const res = await fetch(url, { headers: accept });
+            if (res.status === 403) {
+              // rate limit
+              setError("محدودیت درخواست‌های گیت‌هاب فعال شده. کمی صبر کنید و دوباره تلاش کنید.");
+            }
+            const data = await res.json();
+
+            const newItems = Array.isArray(data.items) ? data.items : [];
+            setTotal(data.total_count ?? 0);
+            setItems(resetPage ? newItems : [...items, ...newItems]);
+            setPage(currentPage);
+          } catch (e) {
+            setError("خطایی رخ داد. اینترنت یا عبارت جستجو را بررسی کنید.");
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        // quick dorks
+        const quick = [
+          { t: "ستاره‌دارهای JS", q: "stars:>1000 language:JavaScript" },
+          { t: "React", q: "topic:react framework" },
+          { t: "Next.js", q: "user:vercel nextjs" },
+          { t: "FastAPI", q: "language:python fastapi" },
+        ];
+
+        const hasMore = useMemo(() => items.length < total, [items, total]);
+
+        return (
+          <div className="rounded-3xl bg-white/5 border border-white/10 shadow-soft backdrop-blur p-4 sm:p-6">
+            {/* Search controls */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && doSearch(true)}
+                  placeholder="جستجو در مخازن، کاربران و… (مثل: react language:typescript)"
+                  className="w-full h-12 sm:h-14 rounded-2xl bg-night-800/70 border border-white/10 focus:border-primary-500/60 outline-none px-5 pr-12 text-sm sm:text-base placeholder-white/40"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
+                    <path d="M20 20L17 17" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </div>
+              <Button onClick={() => doSearch(true)}>جستجو</Button>
+            </div>
+
+            {/* Quick dorks */}
+            <div className="mt-4 flex flex-wrap gap-2 text-xs items-center">
+              <span className="text-white/60">میان‌برها:</span>
+              {quick.map((c) => (
+                <Chip key={c.q} onClick={() => { setQuery(c.q); setTimeout(() => doSearch(true), 0); }}>{c.t}</Chip>
+              ))}
+            </div>
+
+            {/* Tabs */}
+            <div className="mt-5 flex gap-2 text-sm">
+              <Tab active={type==="repos"} onClick={() => { setType("repos"); setItems([]); setTotal(0); }}>{'مخازن'}</Tab>
+              <Tab active={type==="users"} onClick={() => { setType("users"); setItems([]); setTotal(0); }}>{'کاربران'}</Tab>
+              <Tab active={type==="topics"} onClick={() => { setType("topics"); setItems([]); setTotal(0); }}>{'موضوعات'}</Tab>
+            </div>
+
+            {/* Error */}
+            <ErrorBar text={error} />
+
+            {/* Results */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {loading && items.length === 0
+                ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+                : items.length === 0
+                ? <div className="col-span-full text-center text-white/60">برای شروع، عبارت جستجو را وارد کنید.</div>
+                : type === "repos"
+                ? items.map((r) => <RepoCard key={r.id} repo={r} />)
+                : type === "users"
+                ? items.map((u) => <UserCard key={u.id} u={u} />)
+                : items.map((t) => <TopicCard key={t.name} t={t} />)
+              }
+            </div>
+
+            {/* Load more */}
+            {items.length > 0 && (
+              <div className="mt-5 flex justify-center">
+                {hasMore ? (
+                  <Button onClick={() => doSearch(false)} className={loading ? "opacity-70 pointer-events-none" : ""}>
+                    {loading ? "در حال بارگذاری..." : "موارد بیشتر"}
+                  </Button>
+                ) : (
+                  <div className="text-white/60 text-sm">نتیجه بیشتری وجود ندارد.</div>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      // Mount
+      ReactDOM.createRoot(document.getElementById("app-root")).render(<App />);
+    </script>
+  </body>
+</html>
