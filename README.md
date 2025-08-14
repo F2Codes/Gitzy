@@ -33,6 +33,7 @@ Gitzy turns GitHub search into a smooth, fast, and delightful experience.
 
 ## 🛠 Technologies Used
 - **HTML5**
+- **React**
 - **CSS3 / TailwindCSS**
 - **JavaScript (ES6+)**
 - **GitHub Search API**
