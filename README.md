@@ -37,6 +37,7 @@ Gitzy turns GitHub search into a smooth, fast, and delightful experience.
 - **CSS3 / TailwindCSS**
 - **JavaScript (ES6+)**
 - **GitHub Search API**
+- **OpenAI API**
 
 ---
 
