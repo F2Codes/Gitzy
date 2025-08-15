@@ -73,9 +73,11 @@
         <nav class="hidden md:flex items-center gap-2">
           <a href="#explore" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm">کاوش</a>
           <a href="#about" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm">درباره</a>
+          <a href="#" onclick="window.openReadmeBuilder && window.openReadmeBuilder(); return false;" class="px-3 py-1.5 rounded-xl bg-gradient-to-l from-primary-600 to-accent-500 text-sm font-bold">ساخت Read.me</a>
         </nav>
 
         <div class="flex items-center gap-2">
+          <a class="md:hidden px-3 py-1.5 rounded-xl bg-gradient-to-l from-primary-600 to-accent-500 text-sm font-bold" href="#" onclick="window.openReadmeBuilder && window.openReadmeBuilder(); return false;">ساخت Read.me</a>
           <a class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10" href="https://t.me/MatinHajzeinali/" target="_blank" aria-label="تلگرام">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" class="text-accent-500"><path d="M9.04 16.44l-.26 3.66c.37 0 .53-.16.72-.35l1.73-1.66 3.58 2.62c.66.36 1.13.17 1.31-.61l2.37-10.79c.21-.92-.33-1.28-.96-1.06L4.1 11.23c-.88.31-.87.76-.15.96l3.51 1.09 8.15-5.15c.38-.24.72-.11.44.13"/></svg>
           </a>
@@ -171,6 +173,237 @@
         text ? (
           <div className="mt-4 p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm">{text}</div>
         ) : null;
+
+      // Additional UI
+      const Loader = () => (
+        <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+      );
+
+      const Modal = ({ open, onClose, children, title }) => {
+        if (!open) return null;
+        return (
+          <div className="fixed inset-0 z-50">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="absolute left-1/2 top-8 -translate-x-1/2 w-[95%] sm:w-[780px] rounded-3xl bg-night-800/90 border border-white/10 shadow-glow">
+              <div className="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between">
+                <h3 className="text-lg font-extrabold">{title}</h3>
+                <button onClick={onClose} className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm">بستن</button>
+              </div>
+              <div className="p-5 sm:p-6 max-h-[75vh] overflow-y-auto">{children}</div>
+            </div>
+          </div>
+        );
+      };
+
+      const FieldLabel = ({ children }) => (
+        <label className="block text-sm text-white/70 mb-2">{children}</label>
+      );
+
+      const TextInput = (props) => (
+        <input {...props} className={(props.className || "") + " w-full h-11 rounded-xl bg-night-800/70 border border-white/10 focus:border-primary-500/60 outline-none px-4 text-sm"} />
+      );
+
+      const TextArea = (props) => (
+        <textarea {...props} className={(props.className || "") + " w-full min-h-[84px] rounded-xl bg-night-800/70 border border-white/10 focus:border-primary-500/60 outline-none px-4 py-3 text-sm"} />
+      );
+
+      const SectionCard = ({ children }) => (
+        <div className="rounded-2xl bg-white/5 border border-white/10 p-4 sm:p-5">{children}</div>
+      );
+
+      // ---- README Builder ----
+      const ReadmeBuilder = ({ open, onClose }) => {
+        const [apiKey, setApiKey] = useState(() => localStorage.getItem('openai_api_key') || "");
+        const [rememberKey, setRememberKey] = useState(() => !!localStorage.getItem('openai_api_key'));
+
+        const [repoName, setRepoName] = useState("");
+        const [description, setDescription] = useState("");
+        const [techStack, setTechStack] = useState("");
+        const [features, setFeatures] = useState("");
+        const [installation, setInstallation] = useState("");
+        const [usage, setUsage] = useState("");
+        const [license, setLicense] = useState("MIT");
+
+        const [model, setModel] = useState("gpt-4o-mini");
+        const [output, setOutput] = useState("");
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState("");
+
+        useEffect(() => {
+          if (rememberKey && apiKey) localStorage.setItem('openai_api_key', apiKey);
+          if (!rememberKey) localStorage.removeItem('openai_api_key');
+        }, [apiKey, rememberKey]);
+
+        const composePrompt = () => {
+          return `نام مخزن: ${repoName}\n\nتوضیح کلی: ${description}\n\nپشته فناوری (Tech Stack): ${techStack}\n\nویژگی‌ها: ${features}\n\nنصب (Installation): ${installation}\n\nنحوه استفاده (Usage): ${usage}\n\nمجوز (License): ${license}\n\nدستورالعمل: یک فایل README.md کامل و حرفه‌ای به زبان فارسی تولید کن. فقط Markdown خروجی بده. ساختار شامل:\n- عنوان شامل نام مخزن\n- توضیح کوتاه\n- نشان‌ها (Badges) مناسب (در صورت نیاز از مثال‌ها استفاده کن)\n- فهرست مطالب\n- ویژگی‌ها\n- پیش‌نیازها و نصب\n- نحوه استفاده با مثال‌های کد\n- پیکربندی (در صورت نیاز)\n- تست‌ها (اگر لازم است)\n- نقشه راه یا Roadmap (اختیاری)\n- مشارکت (Contributing)\n- مجوز\n- قدردانی\nاگر اطلاعات بعضی بخش‌ها داده نشده، از متن placeholder استفاده کن تا کاربر بعداً جایگزین کند. از Heading های منظم و کدبلوک‌ها استفاده کن.`;
+        };
+
+        const generateReadme = async () => {
+          setError("");
+          setOutput("");
+          if (!apiKey) {
+            setError("لطفاً کلید API سرویس OpenAI خود را وارد کنید.");
+            return;
+          }
+          if (!repoName || !description) {
+            setError("نام مخزن و توضیح کلی الزامی است.");
+            return;
+          }
+          setLoading(true);
+          try {
+            const payload = {
+              model,
+              messages: [
+                { role: 'system', content: 'You are an expert README.md generator. Output only valid Markdown without any surrounding explanations.' },
+                { role: 'user', content: composePrompt() }
+              ],
+              temperature: 0.3
+            };
+
+            let res = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+              // Retry with a more widely available model
+              const altPayload = { ...payload, model: 'gpt-3.5-turbo' };
+              res = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(altPayload)
+              });
+            }
+
+            if (!res.ok) {
+              const errJson = await res.json().catch(() => ({}));
+              throw new Error(errJson.error?.message || 'خطا در ارتباط با سرویس OpenAI');
+            }
+
+            const data = await res.json();
+            const text = data.choices?.[0]?.message?.content?.trim?.() || '';
+            setOutput(text);
+          } catch (e) {
+            setError(e.message || 'خطای ناشناخته رخ داد.');
+          } finally {
+            setLoading(false);
+          }
+        };
+
+        const copyOutput = async () => {
+          try { await navigator.clipboard.writeText(output); } catch {}
+        };
+
+        const downloadOutput = () => {
+          const blob = new Blob([output], { type: 'text/markdown;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'README.md';
+          document.body.appendChild(a);
+          a.click();
+          URL.revokeObjectURL(url);
+          a.remove();
+        };
+
+        return (
+          <Modal open={open} onClose={onClose} title="ساخت Read.me با هوش مصنوعی">
+            <div className="grid grid-cols-1 gap-4">
+              <SectionCard>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel>کلید API OpenAI</FieldLabel>
+                    <TextInput type="password" placeholder="sk-..." value={apiKey} onChange={e => setApiKey(e.target.value)} />
+                    <label className="flex items-center gap-2 mt-2 text-xs text-white/70">
+                      <input type="checkbox" checked={rememberKey} onChange={e => setRememberKey(e.target.checked)} /> حفظ کلید در مرورگر
+                    </label>
+                    <p className="text-[11px] text-white/40 mt-2">نکته: برای امنیت، کلید شما فقط روی دستگاه خودتان ذخیره می‌شود و به جایی ارسال نمی‌گردد جز درخواست مستقیم به OpenAI.</p>
+                  </div>
+                  <div>
+                    <FieldLabel>مدل</FieldLabel>
+                    <select value={model} onChange={e => setModel(e.target.value)} className="w-full h-11 rounded-xl bg-night-800/70 border border-white/10 focus:border-primary-500/60 outline-none px-4 text-sm">
+                      <option value="gpt-4o-mini">gpt-4o-mini</option>
+                      <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    </select>
+                  </div>
+                </div>
+              </SectionCard>
+
+              <SectionCard>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel>نام مخزن</FieldLabel>
+                    <TextInput placeholder="مثلاً awesome-project" value={repoName} onChange={e => setRepoName(e.target.value)} />
+                  </div>
+                  <div>
+                    <FieldLabel>مجوز</FieldLabel>
+                    <select value={license} onChange={e => setLicense(e.target.value)} className="w-full h-11 rounded-xl bg-night-800/70 border border-white/10 focus:border-primary-500/60 outline-none px-4 text-sm">
+                      <option>MIT</option>
+                      <option>Apache-2.0</option>
+                      <option>GPL-3.0</option>
+                      <option>BSD-3-Clause</option>
+                      <option>Unlicense</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <FieldLabel>توضیح کلی</FieldLabel>
+                  <TextArea placeholder="این پروژه چه می‌کند و برای چه ساخته شده است؟" value={description} onChange={e => setDescription(e.target.value)} />
+                </div>
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel>پشته فناوری</FieldLabel>
+                    <TextArea placeholder="Node.js, React, TailwindCSS, PostgreSQL ..." value={techStack} onChange={e => setTechStack(e.target.value)} />
+                  </div>
+                  <div>
+                    <FieldLabel>ویژگی‌ها</FieldLabel>
+                    <TextArea placeholder="- احراز هویت\n- داشبورد\n- API سریع ..." value={features} onChange={e => setFeatures(e.target.value)} />
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel>نصب</FieldLabel>
+                    <TextArea placeholder="npm install && npm run dev یا دستورالعمل نصب ..." value={installation} onChange={e => setInstallation(e.target.value)} />
+                  </div>
+                  <div>
+                    <FieldLabel>نحوه استفاده</FieldLabel>
+                    <TextArea placeholder="نحوه اجرا، مثال‌های کد و ..." value={usage} onChange={e => setUsage(e.target.value)} />
+                  </div>
+                </div>
+              </SectionCard>
+
+              <div className="flex items-center justify-between gap-3">
+                <div className="text-white/60 text-sm">پس از ساخت، می‌توانید فایل را کپی یا دانلود کنید.</div>
+                <Button onClick={generateReadme} className={loading ? "opacity-70 pointer-events-none" : ""}>
+                  {loading ? (<span className="inline-flex items-center gap-2"><Loader /> در حال ساخت...</span>) : "ساخت README"}
+                </Button>
+              </div>
+
+              {error ? <div className="p-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-200 text-sm">{error}</div> : null}
+
+              {output ? (
+                <SectionCard>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <h4 className="font-extrabold">خروجی README.md</h4>
+                    <div className="flex items-center gap-2">
+                      <button onClick={copyOutput} className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm">کپی</button>
+                      <button onClick={downloadOutput} className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm">دانلود</button>
+                    </div>
+                  </div>
+                  <pre className="whitespace-pre-wrap text-sm leading-7 text-white/90 bg-night-700/50 p-4 rounded-xl border border-white/10 overflow-x-auto">{output}</pre>
+                </SectionCard>
+              ) : null}
+            </div>
+          </Modal>
+        );
+      };
 
       // ---- Cards ----
       const SkeletonCard = () => (
@@ -286,12 +519,18 @@
         const [page, setPage] = useState(1);
         const [total, setTotal] = useState(0);
         const [accept, setAccept] = useState({}); // header for topics
+        const [showReadme, setShowReadme] = useState(false);
 
         useEffect(() => {
           if (type === "topics") {
             setAccept({ Accept: "application/vnd.github.mercy-preview+json" });
           } else setAccept({});
         }, [type]);
+
+        useEffect(() => {
+          window.openReadmeBuilder = () => setShowReadme(true);
+          return () => { window.openReadmeBuilder = null; };
+        }, []);
 
         const perPage = 20;
 
@@ -343,73 +582,76 @@
         const hasMore = useMemo(() => items.length < total, [items, total]);
 
         return (
-          <div className="rounded-3xl bg-white/5 border border-white/10 shadow-soft backdrop-blur p-4 sm:p-6">
-            {/* Search controls */}
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && doSearch(true)}
-                  placeholder="جستجو در مخازن، کاربران و… (مثل: react language:typescript)"
-                  className="w-full h-12 sm:h-14 rounded-2xl bg-night-800/70 border border-white/10 focus:border-primary-500/60 outline-none px-5 pr-12 text-sm sm:text-base placeholder-white/40"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
-                    <path d="M20 20L17 17" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-                </span>
+          <>
+            <ReadmeBuilder open={showReadme} onClose={() => setShowReadme(false)} />
+            <div className="rounded-3xl bg-white/5 border border-white/10 shadow-soft backdrop-blur p-4 sm:p-6">
+              {/* Search controls */}
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && doSearch(true)}
+                    placeholder="جستجو در مخازن، کاربران و… (مثل: react language:typescript)"
+                    className="w-full h-12 sm:h-14 rounded-2xl bg-night-800/70 border border-white/10 focus:border-primary-500/60 outline-none px-5 pr-12 text-sm sm:text-base placeholder-white/40"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                      <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
+                      <path d="M20 20L17 17" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                </div>
+                <Button onClick={() => doSearch(true)}>جستجو</Button>
               </div>
-              <Button onClick={() => doSearch(true)}>جستجو</Button>
-            </div>
 
-            {/* Quick dorks */}
-            <div className="mt-4 flex flex-wrap gap-2 text-xs items-center">
-              <span className="text-white/60">میان‌برها:</span>
-              {quick.map((c) => (
-                <Chip key={c.q} onClick={() => { setQuery(c.q); setTimeout(() => doSearch(true), 0); }}>{c.t}</Chip>
-              ))}
-            </div>
-
-            {/* Tabs */}
-            <div className="mt-5 flex gap-2 text-sm">
-              <Tab active={type==="repos"} onClick={() => { setType("repos"); setItems([]); setTotal(0); }}>{'مخازن'}</Tab>
-              <Tab active={type==="users"} onClick={() => { setType("users"); setItems([]); setTotal(0); }}>{'کاربران'}</Tab>
-              <Tab active={type==="topics"} onClick={() => { setType("topics"); setItems([]); setTotal(0); }}>{'موضوعات'}</Tab>
-            </div>
-
-            {/* Error */}
-            <ErrorBar text={error} />
-
-            {/* Results */}
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {loading && items.length === 0
-                ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-                : items.length === 0
-                ? <div className="col-span-full text-center text-white/60">برای شروع، عبارت جستجو را وارد کنید.</div>
-                : type === "repos"
-                ? items.map((r) => <RepoCard key={r.id} repo={r} />)
-                : type === "users"
-                ? items.map((u) => <UserCard key={u.id} u={u} />)
-                : items.map((t) => <TopicCard key={t.name} t={t} />)
-              }
-            </div>
-
-            {/* Load more */}
-            {items.length > 0 && (
-              <div className="mt-5 flex justify-center">
-                {hasMore ? (
-                  <Button onClick={() => doSearch(false)} className={loading ? "opacity-70 pointer-events-none" : ""}>
-                    {loading ? "در حال بارگذاری..." : "موارد بیشتر"}
-                  </Button>
-                ) : (
-                  <div className="text-white/60 text-sm">نتیجه بیشتری وجود ندارد.</div>
-                )}
+              {/* Quick dorks */}
+              <div className="mt-4 flex flex-wrap gap-2 text-xs items-center">
+                <span className="text-white/60">میان‌برها:</span>
+                {quick.map((c) => (
+                  <Chip key={c.q} onClick={() => { setQuery(c.q); setTimeout(() => doSearch(true), 0); }}>{c.t}</Chip>
+                ))}
               </div>
-            )}
-          </div>
+
+              {/* Tabs */}
+              <div className="mt-5 flex gap-2 text-sm">
+                <Tab active={type==="repos"} onClick={() => { setType("repos"); setItems([]); setTotal(0); }}>{'مخازن'}</Tab>
+                <Tab active={type==="users"} onClick={() => { setType("users"); setItems([]); setTotal(0); }}>{'کاربران'}</Tab>
+                <Tab active={type==="topics"} onClick={() => { setType("topics"); setItems([]); setTotal(0); }}>{'موضوعات'}</Tab>
+              </div>
+
+              {/* Error */}
+              <ErrorBar text={error} />
+
+              {/* Results */}
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {loading && items.length === 0
+                  ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+                  : items.length === 0
+                  ? <div className="col-span-full text-center text-white/60">برای شروع، عبارت جستجو را وارد کنید.</div>
+                  : type === "repos"
+                  ? items.map((r) => <RepoCard key={r.id} repo={r} />)
+                  : type === "users"
+                  ? items.map((u) => <UserCard key={u.id} u={u} />)
+                  : items.map((t) => <TopicCard key={t.name} t={t} />)
+                }
+              </div>
+
+              {/* Load more */}
+              {items.length > 0 && (
+                <div className="mt-5 flex justify-center">
+                  {hasMore ? (
+                    <Button onClick={() => doSearch(false)} className={loading ? "opacity-70 pointer-events-none" : ""}>
+                      {loading ? "در حال بارگذاری..." : "موارد بیشتر"}
+                    </Button>
+                  ) : (
+                    <div className="text-white/60 text-sm">نتیجه بیشتری وجود ندارد.</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </>
         );
       }
 
