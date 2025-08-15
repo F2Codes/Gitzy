@@ -21,6 +21,7 @@ Gitzy turns GitHub search into a smooth, fast, and delightful experience.
 - 🌐 **Persian UI/UX** — Fully localized with the Vazir font for a clean reading experience.
 - ⚡ **Real-time Results** — Instant and accurate results as you type.
 - 📱 **Responsive Design** — Works perfectly on desktop, tablet, and mobile.
+- ✉ **Generate Readme.md Files with AI** — Generate Readme.md files with AI for your repositories.
 - 🎨 **Modern Look** — Built with TailwindCSS and smooth animations.
 - 💙 **Built with Love** — Simple, elegant, and developer-friendly.
 
