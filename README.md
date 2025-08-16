@@ -1,5 +1,5 @@
 # Gitzy
-Gity - Simple, Fast and Free!
+Gizty - Simple, Fast and Free!
 # 🌟 Gitzy — Search GitHub Smarter
 ![Uploading Gitzy-Screen-Shot.png…]()
 
