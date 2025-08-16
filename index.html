@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gitzy — جستجوی گیت‌هاب</title>
+  <meta name="description" content="Gitzy: جستجوگر سریع و زیبا برای پروژه‌های گیت‌هاب به همراه README Builder با OpenAI" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            fa: ['Vazirmatn', 'Vazir', 'ui-sans-serif', 'system-ui'],
+            en: ['-apple-system','BlinkMacSystemFont','Segoe UI','Roboto','Inter','ui-sans-serif']
+          },
+          colors: {
+            brand: {
+              500: '#2f83ff',
+              600: '#1d6fff',
+              700: '#1259ff'
+            },
+            glass: 'rgba(255,255,255,0.06)'
+          },
+          boxShadow: {
+            glow: '0 0 0 1px rgba(255,255,255,0.06), 0 18px 50px rgba(0,0,0,0.45)',
+            soft: '0 10px 30px rgba(0,0,0,0.35)'
+          },
+          keyframes: {
+            floaty: { '0%,100%':{transform:'translateY(0px)'}, '50%':{transform:'translateY(-10px)'} },
+            blob: { '0%':{transform:'translate(0,0) scale(1)'}, '33%':{transform:'translate(10px,-14px) scale(1.05)'}, '66%':{transform:'translate(-12px,8px) scale(0.98)'}, '100%':{transform:'translate(0,0) scale(1)'} }
+          },
+          animation: {
+            floaty: 'floaty 6s ease-in-out infinite',
+            blob: 'blob 12s ease-in-out infinite'
+          },
+          backgroundImage: {
+            hero:
+              'radial-gradient(1200px 600px at 85% -10%, rgba(0,184,255,.18), transparent 60%), radial-gradient(900px 500px at 0% 0%, rgba(147,51,234,.14), transparent 60%), linear-gradient(180deg, #0b1220 0%, #0f1628 35%, #0b1220 100%)'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;800;900&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- React 18 + Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root { --ring: #1d6fff; }
+    html,body { height:100%; }
+    body { background:#0b1220; }
+    .texture {
+      background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.06) 1px, transparent 0);
+      background-size: 22px 22px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,1));
+    }
+    .card {
+      background: rgba(255,255,255,0.04);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-grad {
+      background-image: linear-gradient(135deg, #1d6fff 0%, #00b8ff 100%);
+    }
+    .btn-grad:hover { filter: brightness(1.05); }
+    .focus-ring { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ring) 45%, transparent); }
+    ::-webkit-scrollbar{height:10px;width:10px}
+    ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:999px}
+  </style>
+</head>
+
+<body class="font-fa text-white min-h-screen bg-hero overflow-x-hidden transition-colors duration-500">
+
+  <!-- ===== Header ===== -->
+  <header class="fixed top-0 inset-x-0 z-50 bg-slate-900/60 dark:bg-slate-900/60 backdrop-blur border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <a href="#" class="group inline-flex items-center gap-3">
+        <span class="inline-grid place-items-center w-10 h-10 rounded-2xl btn-grad shadow-glow animate-floaty">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" class="opacity-95">
+            <path d="M8 17L3 12L8 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M16 7L21 12L16 17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M13 5L11 19" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div>
+          <div class="text-xl font-extrabold tracking-tight"><span class="text-white">گیتزی</span> <span class="text-sky-400 en hidden">Gitzy</span></div>
+          <div id="brand-sub" class="text-xs text-white/70 -mt-0.5">جستجوی گیت‌هاب</div>
+        </div>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-2">
+        <a href="#search" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition">جستجو</a>
+        <button id="openReadme" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition">ساخت README</button>
+        <a href="#about" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition">درباره</a>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <!-- Lang -->
+        <button id="langBtn" class="px-3 py-1 rounded-xl text-sm bg-sky-600 hover:bg-sky-700 transition">FA</button>
+        <!-- Mode -->
+        <button id="modeBtn" class="px-3 py-1 rounded-xl text-sm bg-gray-700 hover:bg-gray-600 transition" title="Dark / Light">🌙</button>
+        <!-- Links -->
+        <a class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10" href="https://github.com/F2Codes/" target="_blank" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 .5a12 12 0 00-3.79 23.39c.6.11.82-.26.82-.58l-.02-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.41-1.34-1.78-1.34-1.78-1.09-.75.08-.73.08-.73 1.2.08 1.83 1.23 1.83 1.23 1.07 1.83 2.8 1.3 3.49.99.11-.78.42-1.31.76-1.61-2.66-.31-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.23-3.22-.12-.3-.53-1.55.12-3.23 0 0 1-.32 3.29 1.23a11.5 11.5 0 015.99 0c2.28-1.55 3.28-1.23 3.28-1.23.66 1.68.25 2.93.13 3.23.77.84 1.23 1.9 1.23 3.22 0 4.61-2.81 5.61-5.49 5.91.43.37.81 1.1.81 2.22l-.01 3.29c0 .32.21.69.82.58A12 12 0 0012 .5z"/></svg>
+        </a>
+        <a class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10" href="https://t.me/MatinHajzeinali/" target="_blank" aria-label="Telegram">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9.04 16.44l-.26 3.66c.37 0 .53-.16.72-.35l1.73-1.66 3.58 2.62c.66.36 1.13.17 1.31-.61l2.37-10.79c.21-.92-.33-1.28-.96-1.06L4.1 11.23c-.88.31-.87.76-.15.96l3.51 1.09 8.15-5.15c.38-.24.72-.11.44.13"/></svg>
+        </a>
+        <a class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10" href="mailto:matinf2dev@gmail.com" aria-label="Email">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm-1.4 4.25l-6.22 4.66a1 1 0 01-1.16 0L5 8.25a1 1 0 111.2-1.6L12 11l5.8-4.35a1 1 0 111.2 1.6z"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Hero / Search ===== -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6">
+    <section id="search" class="pt-28 pb-10 text-center relative">
+      <div class="texture absolute inset-0 opacity-30 pointer-events-none"></div>
+      <div class="absolute -top-20 -left-20 w-72 h-72 rounded-full blur-3xl bg-sky-500/20 animate-blob"></div>
+      <div class="absolute top-10 -right-24 w-72 h-72 rounded-full blur-3xl bg-indigo-500/20 animate-blob" style="animation-delay:2s"></div>
+
+      <h1 id="hero-title" class="relative text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+        <span class="fa">جستجوی سریعِ گیت‌هاب با</span>
+        <span class="text-transparent bg-clip-text btn-grad"> Gitzy</span>
+      </h1>
+      <p id="hero-desc" class="relative max-w-2xl mx-auto mt-4 text-white/70">
+        پروژه‌ها را بر اساس نام، توضیح، زبان و ستاره‌ها پیدا کن—سریع، زیبا و کاربردی.
+      </p>
+
+      <!-- React App Mount -->
+      <div id="app-root" class="relative mt-10"></div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="pb-24">
+      <div class="rounded-3xl card p-6 sm:p-8 shadow-soft">
+        <h2 class="text-xl font-extrabold mb-3">درباره Gitzy</h2>
+        <p class="text-white/70 leading-8">
+          Gitzy یک ابزار سبک برای جستجوی مخازن گیت‌هاب است که کاملاً سمت‌کاربر اجرا می‌شود و
+          با <strong>Tailwind CSS</strong>، <strong>React</strong> و انیمیشن‌های نرم ساخته شده.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="border-t border-white/10 py-8 mt-auto">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p id="madeby" class="text-white/70">ساخته شده با 💙</p>
+      <div class="flex items-center gap-3">
+        <a class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm" href="https://github.com/F2Codes/" target="_blank">GitHub</a>
+        <a class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm" href="https://t.me/MatinHajzeinali/" target="_blank">Telegram</a>
+        <a class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm" href="mailto:matinf2dev@gmail.com">Email</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== README Builder Modal ===== -->
+  <dialog id="readmeModal" class="backdrop:bg-black/50 rounded-3xl w-11/12 max-w-3xl p-0 overflow-hidden">
+    <div class="bg-slate-900 text-white card">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
+        <h3 id="rm-title" class="font-extrabold text-lg">ساخت README</h3>
+        <button id="closeReadme" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm">✕</button>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4 p-5">
+        <div class="space-y-3">
+          <label class="block text-sm text-white/80">OpenAI API Key</label>
+          <input id="apiKey" type="password" class="w-full h-11 rounded-xl bg-white/5 border border-white/10 px-3" placeholder="sk-..." />
+          <label class="block text-sm text-white/80">نام ریپو</label>
+          <input id="repoName" class="w-full h-11 rounded-xl bg-white/5 border border-white/10 px-3" placeholder="e.g. gitzy" />
+          <label class="block text-sm text-white/80">توضیح کوتاه</label>
+          <input id="shortDesc" class="w-full h-11 rounded-xl bg-white/5 border border-white/10 px-3" placeholder="هدف پروژه در یک جمله" />
+          <label class="block text-sm text-white/80">ویژگی‌ها (هر خط یک ویژگی)</label>
+          <textarea id="features" rows="4" class="w-full rounded-xl bg-white/5 border border-white/10 p-3" placeholder="- جستجو\n- فیلتر زبان\n- ..."></textarea>
+          <label class="block text-sm text-white/80">نصب / اجرای سریع</label>
+          <textarea id="install" rows="3" class="w-full rounded-xl bg-white/5 border border-white/10 p-3" placeholder="npm i && npm run dev"></textarea>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm text-white/80">زبان README</label>
+              <select id="rmLang" class="w-full h-11 rounded-xl bg-white/5 border border-white/10 px-3">
+                <option value="fa">فارسی</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm text-white/80">لایسنس</label>
+              <input id="license" class="w-full h-11 rounded-xl bg-white/5 border border-white/10 px-3" placeholder="MIT" />
+            </div>
+          </div>
+          <label class="block text-sm text-white/80">تکنولوژی‌ها (کاما جدا)</label>
+          <input id="stack" class="w-full h-11 rounded-xl bg-white/5 border border-white/10 px-3" placeholder="React, Tailwind, Vite" />
+
+          <div class="flex items-center justify-between pt-2">
+            <button id="genReadme" class="btn-grad px-4 py-2 rounded-xl font-bold">تولید README</button>
+            <label class="inline-flex items-center gap-2 text-sm">
+              <input id="saveKey" type="checkbox" class="accent-sky-500" />
+              ذخیره کلید در مرورگر
+            </label>
+          </div>
+          <p id="rmErr" class="text-rose-400 text-sm min-h-5"></p>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold">پیش‌نمایش</h4>
+            <div class="flex items-center gap-2">
+              <button id="copyMd" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm">کپی</button>
+              <button id="dlMd" class="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-sm">دانلود</button>
+            </div>
+          </div>
+          <textarea id="mdOut" rows="18" class="w-full rounded-xl bg-black/40 border border-white/10 p-3 font-mono text-sm"></textarea>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===== React App (Search) ===== -->
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+
+    const Chip = ({ children, onClick }) => (
+      <button onClick={onClick} className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition text-xs">{children}</button>
+    );
+
+    const Badge = ({ children }) => (
+      <span className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/10 text-xs">{children}</span>
+    );
+
+    const RepoCard = ({ repo }) => {
+      const topics = (repo.topics || []).slice(0, 6);
+      return (
+        <article className="group rounded-3xl p-5 sm:p-6 card hover:border-white/20 transition shadow-soft text-right">
+          <div className="flex items-start justify-between gap-3">
+            <a href={repo.html_url} target="_blank" className="block">
+              <h3 className="text-lg sm:text-xl font-extrabold">{repo.full_name}</h3>
+            </a>
+            <a href={repo.html_url} target="_blank" className="px-3 py-1.5 rounded-xl btn-grad text-sm">مشاهده</a>
+          </div>
+          <p className="mt-2 text-white/70 leading-7">{repo.description || "—"}</p>
+          <div className="mt-3 flex flex-wrap gap-2">{topics.map(t => <Badge key={t}>#{t}</Badge>)}</div>
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-white/70">
+            <span className="inline-flex items-center gap-1">⭐ {repo.stargazers_count.toLocaleString('fa-IR')}</span>
+            {repo.language ? <Badge>{repo.language}</Badge> : null}
+            <span>مالک: <a className="underline decoration-white/20 hover:decoration-white" target="_blank" href={repo.owner.html_url}>{repo.owner.login}</a></span>
+            <span>بروزرسانی: {new Date(repo.updated_at).toLocaleDateString('fa-IR')}</span>
+          </div>
+        </article>
+      );
+    };
+
+    function App() {
+      const [q, setQ] = useState("");
+      const [lang, setLang] = useState("");
+      const [stars, setStars] = useState(0);
+      const [sort, setSort] = useState("stars");
+      const [items, setItems] = useState([]);
+      const [loading, setLoading] = useState(false);
+      const [page, setPage] = useState(1);
+      const [total, setTotal] = useState(0);
+      const perPage = 20;
+
+      const quick = [
+        { t: "React + TS", q: "react language:TypeScript" },
+        { t: "Next.js", q: "nextjs stars:>1000" },
+        { t: "FastAPI", q: "fastapi language:python" },
+        { t: "Tailwind", q: "tailwindcss" },
+      ];
+
+      const builtQ = useMemo(() => {
+        const parts = [];
+        if (q.trim()) parts.push(q.trim());
+        if (lang) parts.push(`language:${lang}`);
+        if (stars > 0) parts.push(`stars:>${stars}`);
+        return parts.join(' ');
+      }, [q, lang, stars]);
+
+      async function search(reset = true) {
+        const query = builtQ.trim();
+        if (!query) { setItems([]); setTotal(0); return; }
+        setLoading(true);
+        try {
+          const currentPage = reset ? 1 : page + 1;
+          const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=${sort}&order=desc&per_page=${perPage}&page=${currentPage}`;
+          const res = await fetch(url, { headers: { Accept: 'application/vnd.github.v3+json' }});
+          if (!res.ok) throw new Error('GitHub error');
+          const data = await res.json();
+          const list = Array.isArray(data.items) ? data.items : [];
+          setItems(reset ? list : [...items, ...list]);
+          setTotal(data.total_count ?? 0);
+          setPage(currentPage);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      return (
+        <div className="rounded-3xl card shadow-soft backdrop-blur p-4 sm:p-6">
+          {/* Controls */}
+          <div className="flex flex-col md:flex-row gap-3 items-stretch">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={q}
+                onChange={e=>setQ(e.target.value)}
+                onKeyDown={e=> e.key==='Enter' && search(true)}
+                placeholder="نام پروژه یا کلیدواژه (مثلاً: react language:typescript stars:>500)"
+                className="w-full h-12 sm:h-14 rounded-2xl bg-slate-800/70 border border-white/10 focus:border-brand-600/70 outline-none px-5 pr-12 text-sm sm:text-base placeholder-white/40"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 opacity-60">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2"/><path d="M20 20L17 17" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+              </span>
+            </div>
+
+            <select value={lang} onChange={e=>setLang(e.target.value)} className="h-12 sm:h-14 rounded-2xl bg-white/5 border border-white/10 px-3">
+              <option value="">{'همه زبان‌ها'}</option>
+              <option>JavaScript</option><option>TypeScript</option><option>Python</option><option>Go</option>
+              <option>Rust</option><option>Java</option><option>C#</option><option>PHP</option><option>Swift</option>
+            </select>
+
+            <div className="flex items-center gap-2 px-3 rounded-2xl bg-white/5 border border-white/10">
+              <label className="text-xs text-white/70">حداقل ⭐</label>
+              <input type="number" min="0" step="50" value={stars} onChange={e=>setStars(Number(e.target.value||0))}
+                     className="h-12 sm:h-14 bg-transparent outline-none w-24 text-center"/>
+            </div>
+
+            <select value={sort} onChange={e=>setSort(e.target.value)} className="h-12 sm:h-14 rounded-2xl bg-white/5 border border-white/10 px-3">
+              <option value="stars">Stars</option>
+              <option value="updated">Recently Updated</option>
+              <option value="forks">Forks</option>
+            </select>
+
+            <button onClick={()=>search(true)} className="h-12 sm:h-14 px-5 rounded-2xl font-bold btn-grad transition">جستجو</button>
+          </div>
+
+          {/* Quick chips */}
+          <div className="mt-4 flex flex-wrap gap-2 text-xs items-center">
+            <span className="text-white/60">میان‌برها:</span>
+            {quick.map(c => <Chip key={c.q} onClick={()=>{ setQ(c.q); setTimeout(()=>search(true), 0); }}>{c.t}</Chip>)}
+          </div>
+
+          {/* Status */}
+          <div className="mt-3 text-sm text-white/70">
+            {loading ? 'در حال جستجو…' : (items.length ? `نمایش ${items.length.toLocaleString('fa-IR')} از ${total.toLocaleString('fa-IR')}` : 'یک عبارت جستجو وارد کنید.')}
+          </div>
+
+          {/* Results */}
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {loading && items.length===0
+              ? Array.from({length:6}).map((_,i)=>(
+                  <div key={i} className="animate-pulse rounded-3xl p-5 sm:p-6 bg-white/5 border border-white/10">
+                    <div className="h-5 w-2/3 bg-white/10 rounded"></div>
+                    <div className="h-4 w-full bg-white/10 rounded mt-3"></div>
+                    <div className="h-4 w-5/6 bg-white/10 rounded mt-2"></div>
+                    <div className="flex gap-2 mt-4">
+                      <div className="h-6 w-20 bg-white/10 rounded"></div>
+                      <div className="h-6 w-16 bg-white/10 rounded"></div>
+                      <div className="h-6 w-24 bg-white/10 rounded"></div>
+                    </div>
+                  </div>
+                ))
+              : items.map(r => <RepoCard key={r.id} repo={r} />)
+            }
+          </div>
+
+          {/* Load more */}
+          {items.length>0 && (items.length < total) && (
+            <div className="mt-5 flex justify-center">
+              <button onClick={()=>search(false)} className={"h-12 px-6 rounded-2xl font-bold btn-grad " + (loading?'opacity-70 pointer-events-none':'')}>
+                {loading ? 'در حال بارگذاری…' : 'موارد بیشتر'}
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('app-root')).render(<App />);
+  </script>
+
+  <!-- ===== Global Scripts (mode/lang + README Builder) ===== -->
+  <script>
+    // ---- Mode (dark/light) ----
+    const modeBtn = document.getElementById('modeBtn');
+    const langBtn = document.getElementById('langBtn');
+    const openReadme = document.getElementById('openReadme');
+    const readmeModal = document.getElementById('readmeModal');
+    const closeReadme = document.getElementById('closeReadme');
+
+    // Persisted state
+    const PREFS = {
+      mode: localStorage.getItem('gitzy_mode') || 'dark',
+      lang: localStorage.getItem('gitzy_lang') || 'fa'
+    };
+
+    function applyMode(m) {
+      if (m === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.body.classList.add('bg-hero','text-white');
+        modeBtn.textContent = '🌙';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('bg-hero');
+        document.body.classList.add('bg-white','text-gray-900');
+        modeBtn.textContent = '☀️';
+      }
+    }
+    function applyLang(l) {
+      const isFA = l === 'fa';
+      document.documentElement.lang = isFA ? 'fa' : 'en';
+      document.documentElement.dir  = isFA ? 'rtl' : 'ltr';
+      document.body.classList.toggle('font-fa', isFA);
+      document.body.classList.toggle('font-en', !isFA);
+      langBtn.textContent = isFA ? 'FA' : 'EN';
+      // simple text switches
+      document.getElementById('hero-title').firstElementChild.textContent =
+        isFA ? 'جستجوی سریعِ گیت‌هاب با' : 'Lightning-fast GitHub search with';
+      document.getElementById('hero-desc').textContent =
+        isFA ? 'پروژه‌ها را بر اساس نام، توضیح، زبان و ستاره‌ها پیدا کن—سریع، زیبا و کاربردی.'
+             : 'Find repositories by name, description, language and stars—fast, beautiful and practical.';
+      document.getElementById('brand-sub').textContent = isFA ? 'جستجوی گیت‌هاب' : 'GitHub Search';
+      document.getElementById('madeby').textContent = isFA ? 'ساخته شده با 💙' : 'Built with 💙';
+      document.querySelector('.en')?.classList.toggle('hidden', isFA);
+    }
+    applyMode(PREFS.mode);
+    applyLang(PREFS.lang);
+
+    modeBtn.addEventListener('click', () => {
+      PREFS.mode = PREFS.mode === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('gitzy_mode', PREFS.mode);
+      applyMode(PREFS.mode);
+    });
+    langBtn.addEventListener('click', () => {
+      PREFS.lang = PREFS.lang === 'fa' ? 'en' : 'fa';
+      localStorage.setItem('gitzy_lang', PREFS.lang);
+      applyLang(PREFS.lang);
+    });
+
+    // ---- README Builder modal ----
+    openReadme.addEventListener('click', () => {
+      const saved = localStorage.getItem('gitzy_openai_key');
+      if (saved) document.getElementById('apiKey').value = saved;
+      if (typeof readmeModal.showModal === 'function') readmeModal.showModal();
+      else readmeModal.setAttribute('open','');
+    });
+    closeReadme.addEventListener('click', () => readmeModal.close());
+
+    // README generation
+    const genBtn = document.getElementById('genReadme');
+    const rmErr = document.getElementById('rmErr');
+    const out = document.getElementById('mdOut');
+    const dlBtn = document.getElementById('dlMd');
+    const cpBtn = document.getElementById('copyMd');
+
+    cpBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(out.value || ''); cpBtn.textContent = 'کپی شد!'; setTimeout(()=>cpBtn.textContent='کپی',1200); } catch {}
+    });
+    dlBtn.addEventListener('click', () => {
+      const blob = new Blob([out.value || ''], {type:'text/markdown;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'README.md';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    genBtn.addEventListener('click', async () => {
+      rmErr.textContent = '';
+      out.value = '';
+      const key = document.getElementById('apiKey').value.trim();
+      const repoName = document.getElementById('repoName').value.trim();
+      const shortDesc = document.getElementById('shortDesc').value.trim();
+      const features = document.getElementById('features').value.trim();
+      const install = document.getElementById('install').value.trim();
+      const rmLang = document.getElementById('rmLang').value;
+      const license = document.getElementById('license').value.trim() || 'MIT';
+      const stack = document.getElementById('stack').value.trim();
+
+      if (!key) { rmErr.textContent = 'API Key را وارد کنید.'; return; }
+      if (!repoName || !shortDesc) { rmErr.textContent = 'نام ریپو و توضیح کوتاه الزامی است.'; return; }
+
+      if (document.getElementById('saveKey').checked) {
+        localStorage.setItem('gitzy_openai_key', key);
+      } else {
+        localStorage.removeItem('gitzy_openai_key');
+      }
+
+      genBtn.disabled = true;
+      genBtn.textContent = 'در حال تولید...';
+
+      // Prompt
+      const sys = rmLang === 'fa'
+        ? 'شما یک نویسندهٔ مستندات فنی هستید. یک README استاندارد و تمیز مارک‌داون بنویس.'
+        : 'You are a technical documentation writer. Produce a clean, standard Markdown README.';
+      const user = JSON.stringify({
+        language: rmLang,
+        repoName, shortDesc, features: features.split('\n'),
+        quickstart: install, license, stack: stack.split(',').map(s=>s.trim()).filter(Boolean)
+      });
+
+      try {
+        // Standard Chat Completions
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':`Bearer ${key}`
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role:'system', content: sys },
+              { role:'user', content:
+`اطلاعات پروژه:
+${user}
+
+الزامات:
+- تیتر H1 با نام پروژه
+- توضیح کوتاه
+- بخش Features با بولت‌ها
+- بخش Installation/Usage با بلاک‌کد
+- بخش Configuration (در صورت نیاز)
+- بخش Tech Stack (لیست)
+- بخش Contributing و License
+- در صورت زبان فارسی، متن کاملاً فارسی و روان باشد؛ در انگلیسی، طبیعی و حرفه‌ای باشد.
+- از جدول محتوا در صورت طولانی شدن استفاده کن.` }
+            ],
+            temperature: 0.6
+          })
+        });
+        if (!res.ok) {
+          const t = await res.text();
+          throw new Error(t || 'OpenAI error');
+        }
+        const data = await res.json();
+        const md = data.choices?.[0]?.message?.content || '';
+        out.value = md.trim();
+      } catch (e) {
+        console.error(e);
+        rmErr.textContent = 'اشکال در تولید. کلید/اینترنت/سهمیه را بررسی کنید.';
+      } finally {
+        genBtn.disabled = false;
+        genBtn.textContent = 'تولید README';
+      }
+    });
+
+    // Close modal on Escape
+    document.addEventListener('keydown', (e)=>{ if (e.key==='Escape' && readmeModal.open) readmeModal.close(); });
+  </script>
+</body>
+</html>
